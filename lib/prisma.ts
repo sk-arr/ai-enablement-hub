@@ -6,8 +6,17 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
+  const connectionString =
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL;
+
+  if (!connectionString) {
+    throw new Error("Missing database connection string");
+  }
+
   const adapter = new PrismaNeon({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString,
   });
   return new PrismaClient({ adapter });
 }
