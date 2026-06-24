@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type SceneStatItem = {
+  scene: string | null;
+  _count: {
+    scene: number;
+  };
+};
+
 export async function GET() {
   try {
     const now = new Date();
@@ -42,8 +49,8 @@ export async function GET() {
       totalKnowledge,
       todayRecords,
       weekRecords,
-      sceneStats: sceneStats.map((s) => ({
-        scene: s.scene,
+      sceneStats: sceneStats.map((s: SceneStatItem) => ({
+        scene: s.scene ?? "未分类",
         count: s._count.scene,
       })),
     });
