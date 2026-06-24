@@ -8,8 +8,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(records);
-  } catch {
-    return NextResponse.json({ error: "获取记录失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch records", error);
+    return NextResponse.json([]);
   }
 }
 
@@ -30,7 +31,11 @@ export async function POST(request: NextRequest) {
       },
     });
     return NextResponse.json(record, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "创建记录失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to create record", error);
+    return NextResponse.json(
+      { error: "创建记录失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }

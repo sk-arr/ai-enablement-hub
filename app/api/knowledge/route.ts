@@ -8,8 +8,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(items);
-  } catch {
-    return NextResponse.json({ error: "获取知识库失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch knowledge items", error);
+    return NextResponse.json([]);
   }
 }
 
@@ -27,7 +28,11 @@ export async function POST(request: NextRequest) {
       },
     });
     return NextResponse.json(item, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "创建条目失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to create knowledge item", error);
+    return NextResponse.json(
+      { error: "创建条目失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }

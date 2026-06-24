@@ -55,7 +55,18 @@ export async function GET() {
         count: s._count.scene,
       })),
     });
-  } catch {
-    return NextResponse.json({ error: "获取统计数据失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch dashboard stats", error);
+    return NextResponse.json({
+      totalRecords: 0,
+      completedRecords: 0,
+      needsOptimizationRecords: 0,
+      totalTemplates: 0,
+      activeTemplates: 0,
+      totalKnowledge: 0,
+      todayRecords: 0,
+      weekRecords: 0,
+      sceneStats: [],
+    });
   }
 }

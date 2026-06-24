@@ -8,8 +8,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(templates);
-  } catch {
-    return NextResponse.json({ error: "获取模板失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch templates", error);
+    return NextResponse.json([]);
   }
 }
 
@@ -27,7 +28,11 @@ export async function POST(request: NextRequest) {
       },
     });
     return NextResponse.json(template, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "创建模板失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to create template", error);
+    return NextResponse.json(
+      { error: "创建模板失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }

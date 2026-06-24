@@ -15,8 +15,12 @@ export async function GET(
       return NextResponse.json({ error: "记录不存在" }, { status: 404 });
     }
     return NextResponse.json(record);
-  } catch {
-    return NextResponse.json({ error: "获取记录失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch record", error);
+    return NextResponse.json(
+      { error: "获取记录失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }
 
@@ -37,8 +41,12 @@ export async function PATCH(
       },
     });
     return NextResponse.json(record);
-  } catch {
-    return NextResponse.json({ error: "更新记录失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to update record", error);
+    return NextResponse.json(
+      { error: "更新记录失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }
 
@@ -53,7 +61,11 @@ export async function DELETE(
       where: { id },
     });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "删除记录失败" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to delete record", error);
+    return NextResponse.json(
+      { error: "删除记录失败，请检查数据库配置" },
+      { status: 500 },
+    );
   }
 }
