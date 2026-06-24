@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 
 export async function GET(
   _request: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
   try {
+    const prisma = getPrismaClient();
     const { id } = await ctx.params;
     const record = await prisma.executionRecord.findUnique({
       where: { id },
@@ -24,6 +25,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> },
 ) {
   try {
+    const prisma = getPrismaClient();
     const { id } = await ctx.params;
     const body = await request.json();
     const record = await prisma.executionRecord.update({
@@ -45,6 +47,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   try {
+    const prisma = getPrismaClient();
     const { id } = await ctx.params;
     await prisma.executionRecord.delete({
       where: { id },

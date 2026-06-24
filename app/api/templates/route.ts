@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const prisma = getPrismaClient();
     const templates = await prisma.template.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -14,6 +15,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     const body = await request.json();
     const template = await prisma.template.create({
       data: {

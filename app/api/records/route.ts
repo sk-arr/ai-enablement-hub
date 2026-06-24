@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const prisma = getPrismaClient();
     const records = await prisma.executionRecord.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -14,6 +15,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     const body = await request.json();
     const record = await prisma.executionRecord.create({
       data: {

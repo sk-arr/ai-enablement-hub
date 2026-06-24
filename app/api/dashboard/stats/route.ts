@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 
 type SceneStatItem = {
   scene: string | null;
@@ -10,6 +10,7 @@ type SceneStatItem = {
 
 export async function GET() {
   try {
+    const prisma = getPrismaClient();
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const todayStart = new Date(now.setHours(0, 0, 0, 0));
