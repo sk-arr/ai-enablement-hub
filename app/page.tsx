@@ -277,11 +277,11 @@ export default function Home() {
             </div>
 
             <Link
-              href="#"
+              href="/workspace"
               className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition-colors hover:text-white"
             >
               <GitBranch className="size-4" strokeWidth={1.8} />
-              GitHub
+              进入工作台
             </Link>
           </div>
 

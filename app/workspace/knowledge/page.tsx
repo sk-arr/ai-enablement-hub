@@ -174,7 +174,7 @@ export default function KnowledgePage() {
                 <BookOpen className="size-8" strokeWidth={1.7} />
               </div>
               <h2 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
-                暂无知识条目
+                暂无知识库条目
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 当前分类下还没有沉淀的排错经验。
