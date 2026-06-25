@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -75,10 +78,16 @@ const solutionModules: {
 ];
 
 const stats = [
-  { value: "6", label: "个AI提效场景" },
-  { value: "5", label: "类模板管理" },
-  { value: "7", label: "类问题知识库" },
-];
+  { key: "totalRecords", label: "条执行记录" },
+  { key: "totalTemplates", label: "类模板管理" },
+  { key: "totalKnowledge", label: "类问题知识库" },
+] as const;
+
+type HomeStats = {
+  totalRecords: number;
+  totalTemplates: number;
+  totalKnowledge: number;
+};
 
 function SectionHeading({
   title,
@@ -109,7 +118,103 @@ function CardIcon({ icon: Icon }: { icon: LucideIcon }) {
   );
 }
 
+function CountUpNumber({
+  value,
+  loading,
+}: {
+  value?: number;
+  loading: boolean;
+}) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (loading || value == null) {
+      const resetTimer = window.setTimeout(() => setDisplayValue(0), 0);
+
+      return () => {
+        window.clearTimeout(resetTimer);
+      };
+    }
+
+    if (value === 0) {
+      const resetTimer = window.setTimeout(() => setDisplayValue(0), 0);
+
+      return () => {
+        window.clearTimeout(resetTimer);
+      };
+    }
+
+    let current = 0;
+    const increment = value / 60;
+
+    const timer = window.setInterval(() => {
+      current += increment;
+
+      if (current >= value) {
+        setDisplayValue(value);
+        window.clearInterval(timer);
+        return;
+      }
+
+      setDisplayValue(Math.round(current));
+    }, 25);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [loading, value]);
+
+  if (loading || value == null) {
+    return "--";
+  }
+
+  return displayValue;
+}
+
 export default function Home() {
+  const [homeStats, setHomeStats] = useState<HomeStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function fetchHomeStats() {
+      try {
+        setStatsLoading(true);
+
+        const response = await fetch("/api/dashboard/stats");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard stats");
+        }
+
+        const data = (await response.json()) as HomeStats;
+
+        if (!ignore) {
+          setHomeStats({
+            totalRecords: data.totalRecords,
+            totalTemplates: data.totalTemplates,
+            totalKnowledge: data.totalKnowledge,
+          });
+        }
+      } catch {
+        if (!ignore) {
+          setHomeStats(null);
+        }
+      } finally {
+        if (!ignore) {
+          setStatsLoading(false);
+        }
+      }
+    }
+
+    fetchHomeStats();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -142,8 +247,11 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="px-5 pb-20 pt-32 sm:px-6 md:pb-24 md:pt-40 lg:px-8">
-        <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white px-5 pb-20 pt-32 sm:px-6 md:pb-24 md:pt-40 lg:px-8">
+        <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-blue-100 opacity-60 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-100 opacity-40 blur-3xl" />
+
+        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center text-center">
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
             <Sparkles className="size-4 text-blue-600" strokeWidth={1.8} />
             面向小团队的 AI 落地管理平台
@@ -179,7 +287,10 @@ export default function Home() {
                 className="flex flex-col items-center justify-center rounded-xl bg-white px-5 py-6 text-center shadow-sm ring-1 ring-slate-200/70"
               >
                 <span className="text-4xl font-semibold tracking-tight text-blue-600">
-                  {item.value}
+                  <CountUpNumber
+                    value={homeStats?.[item.key]}
+                    loading={statsLoading}
+                  />
                 </span>
                 <span className="mt-2 text-sm font-medium text-slate-600">
                   {item.label}

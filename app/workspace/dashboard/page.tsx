@@ -31,6 +31,14 @@ type DashboardStats = {
   sceneStats: { scene: string; count: number }[];
 };
 
+type Period = "today" | "week" | "all";
+
+const periodOptions: { label: string; value: Period }[] = [
+  { label: "今日", value: "today" },
+  { label: "本周", value: "week" },
+  { label: "全部", value: "all" },
+];
+
 const sceneShortNameMap: Record<string, string> = {
   workflow: "工作流",
   prompt: "Prompt",
@@ -83,6 +91,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [period, setPeriod] = useState<Period>("all");
 
   useEffect(() => {
     let ignore = false;
@@ -92,7 +101,7 @@ export default function DashboardPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("/api/dashboard/stats");
+        const response = await fetch(`/api/dashboard/stats?period=${period}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch dashboard stats");
@@ -119,7 +128,7 @@ export default function DashboardPage() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [period]);
 
   const chartData = useMemo(() => {
     return (
@@ -136,13 +145,36 @@ export default function DashboardPage() {
 
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-10">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-          数据看板
-        </h1>
-        <p className="mt-3 text-base leading-7 text-slate-600">
-          实时统计 AI 提效工作台的使用数据
-        </p>
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+            数据看板
+          </h1>
+          <p className="mt-3 text-base leading-7 text-slate-600">
+            实时统计 AI 提效工作台的使用数据
+          </p>
+        </div>
+
+        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+          {periodOptions.map((option) => {
+            const active = period === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setPeriod(option.value)}
+                className={`h-9 rounded-md px-4 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       {error ? (

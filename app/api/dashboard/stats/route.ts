@@ -8,12 +8,27 @@ type SceneStatItem = {
   };
 };
 
-export async function GET() {
+type Period = "today" | "week" | "all";
+
+export async function GET(request: Request) {
   try {
     const prisma = getPrismaClient();
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const url = new URL(request.url);
+    const rawPeriod = url.searchParams.get("period");
+    const period: Period =
+      rawPeriod === "today" || rawPeriod === "week" || rawPeriod === "all"
+        ? rawPeriod
+        : "all";
+    const periodWhere =
+      period === "today"
+        ? { createdAt: { gte: todayStart } }
+        : period === "week"
+          ? { createdAt: { gte: weekAgo } }
+          : {};
 
     const [
       totalRecords,
@@ -26,9 +41,13 @@ export async function GET() {
       weekRecords,
       sceneStats,
     ] = await Promise.all([
-      prisma.executionRecord.count(),
-      prisma.executionRecord.count({ where: { status: "completed" } }),
-      prisma.executionRecord.count({ where: { status: "needs_optimization" } }),
+      prisma.executionRecord.count({ where: periodWhere }),
+      prisma.executionRecord.count({
+        where: { ...periodWhere, status: "completed" },
+      }),
+      prisma.executionRecord.count({
+        where: { ...periodWhere, status: "needs_optimization" },
+      }),
       prisma.template.count(),
       prisma.template.count({ where: { isActive: true } }),
       prisma.knowledgeItem.count(),
@@ -36,6 +55,7 @@ export async function GET() {
       prisma.executionRecord.count({ where: { createdAt: { gte: weekAgo } } }),
       prisma.executionRecord.groupBy({
         by: ["scene"],
+        where: periodWhere,
         _count: { scene: true },
         orderBy: { _count: { scene: "desc" } },
       }),

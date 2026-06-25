@@ -188,25 +188,21 @@ export default function RecordsPage() {
             ))}
           </div>
         ) : filteredRecords.length === 0 ? (
-          <div className="flex min-h-[420px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-            <div className="flex max-w-sm flex-col items-center">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-200">
-                <FileText className="size-8" strokeWidth={1.7} />
-              </div>
-              <h2 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
-                暂无执行记录
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                生成方案并保存后，执行记录会出现在这里。
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push("/workspace")}
-                className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-              >
-                去生成第一个方案
-              </button>
-            </div>
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white py-24 text-center">
+            <FileText className="h-16 w-16 text-slate-300" strokeWidth={1.7} />
+            <h2 className="mt-5 text-lg font-medium text-slate-600">
+              还没有执行记录
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              去生成你的第一个 AI 执行方案吧
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/workspace")}
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              去生成方案
+            </button>
           </div>
         ) : (
           <div className="grid gap-4">

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Copy,
+  Download,
   FileText,
   Lightbulb,
   ListChecks,
@@ -159,6 +160,19 @@ export default function RecordDetailPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (!record?.title) {
+      return;
+    }
+
+    const previousTitle = document.title;
+    document.title = record.title;
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [record?.title]);
+
   const parsedPlan = useMemo(() => {
     if (!record) {
       return null;
@@ -230,6 +244,10 @@ export default function RecordDetailPage() {
     }
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
@@ -263,19 +281,60 @@ export default function RecordDetailPage() {
 
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-10">
-      <div className="mb-6">
+      <style>
+        {`
+          @media print {
+            nav,
+            aside,
+            button,
+            .print-hidden {
+              display: none !important;
+            }
+
+            body,
+            main {
+              background: #ffffff !important;
+            }
+
+            main {
+              margin-left: 0 !important;
+            }
+
+            .record-print-layout {
+              display: block !important;
+            }
+
+            .record-print-content {
+              width: 100% !important;
+            }
+          }
+        `}
+      </style>
+
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
         <Link
           href="/workspace/records"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="print-hidden text-sm font-medium text-blue-600 hover:text-blue-700"
         >
           ← 返回列表
         </Link>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
           {record.title}
         </h1>
+        </div>
+
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+        >
+          <Download className="size-4" strokeWidth={1.9} />
+          导出方案
+        </button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
+      <div className="record-print-layout grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <aside className="space-y-5">
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-base font-semibold tracking-tight text-slate-950">
@@ -380,7 +439,7 @@ export default function RecordDetailPage() {
           </section>
         </aside>
 
-        <main>
+        <main className="record-print-content">
           <h2 className="mb-5 text-2xl font-semibold tracking-tight text-slate-950">
             执行方案
           </h2>

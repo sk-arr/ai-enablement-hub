@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, FileText, Plus } from "lucide-react";
+import { AlertCircle, BookOpen, Copy, Plus, X } from "lucide-react";
 
 type Template = {
   id: string;
@@ -54,6 +54,8 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<CategoryValue>("all");
   const [error, setError] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -92,6 +94,25 @@ export default function TemplatesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedTemplate(null);
+        setCopied(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [selectedTemplate]);
+
   const filteredTemplates = useMemo(() => {
     if (activeCategory === "all") {
       return templates;
@@ -99,6 +120,29 @@ export default function TemplatesPage() {
 
     return templates.filter((template) => template.category === activeCategory);
   }, [activeCategory, templates]);
+
+  const selectedCategory = selectedTemplate
+    ? getCategoryMeta(selectedTemplate.category)
+    : null;
+
+  function closeTemplateModal() {
+    setSelectedTemplate(null);
+    setCopied(false);
+  }
+
+  async function handleCopyTemplate() {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(selectedTemplate.content);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      alert("复制失败，请手动复制");
+    }
+  }
 
   return (
     <div className="px-6 py-8 sm:px-8 lg:px-10">
@@ -163,18 +207,21 @@ export default function TemplatesPage() {
             ))}
           </div>
         ) : filteredTemplates.length === 0 ? (
-          <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-            <div className="flex max-w-sm flex-col items-center">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-200">
-                <FileText className="size-8" strokeWidth={1.7} />
-              </div>
-              <h2 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
-                暂无模板
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                当前分类下还没有可用模板。
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white py-24 text-center">
+            <BookOpen className="h-16 w-16 text-slate-300" strokeWidth={1.7} />
+            <h2 className="mt-5 text-lg font-medium text-slate-600">
+              模板库暂无内容
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              添加第一个可复用模板
+            </p>
+            <button
+              type="button"
+              onClick={() => alert("功能开发中")}
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              新增模板
+            </button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -184,7 +231,16 @@ export default function TemplatesPage() {
               return (
                 <article
                   key={template.id}
-                  className="relative rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedTemplate(template)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedTemplate(template);
+                    }
+                  }}
+                  className="relative cursor-pointer rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-blue-100"
                 >
                   <div className="flex justify-end">
                     <span
@@ -221,6 +277,69 @@ export default function TemplatesPage() {
           </div>
         )}
       </section>
+
+      {selectedTemplate && selectedCategory ? (
+        <div
+          className="fixed inset-0 z-50 bg-black/50"
+          onClick={closeTemplateModal}
+        >
+          <div
+            className="fixed left-1/2 top-1/2 z-50 w-[min(42rem,calc(100vw-2rem))] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                    {selectedTemplate.name}
+                  </h2>
+                  <span
+                    className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-medium ${selectedCategory.className}`}
+                  >
+                    {selectedCategory.label}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeTemplateModal}
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                aria-label="关闭预览"
+              >
+                <X className="size-4" strokeWidth={2} />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              {selectedTemplate.description ? (
+                <div className="mb-5 border-b border-slate-200 pb-5 text-sm leading-6 text-slate-600">
+                  {selectedTemplate.description}
+                </div>
+              ) : null}
+
+              <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-100 p-4 font-mono text-sm leading-6 text-slate-700">
+                {selectedTemplate.content}
+              </pre>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-6 py-4">
+              <span className="text-sm text-slate-500">
+                使用 {selectedTemplate.useCount} 次
+              </span>
+
+              <button
+                type="button"
+                onClick={handleCopyTemplate}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                <Copy className="size-4" strokeWidth={1.9} />
+                {copied ? "✓ 已复制" : "复制内容"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

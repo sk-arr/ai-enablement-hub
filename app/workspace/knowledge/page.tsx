@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, BookOpen, ChevronDown, Plus } from "lucide-react";
+import { AlertCircle, ChevronDown, Lightbulb, Plus } from "lucide-react";
 
 type KnowledgeItem = {
   id: string;
@@ -168,18 +168,21 @@ export default function KnowledgePage() {
             ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex min-h-[360px] items-center justify-center p-8 text-center">
-            <div className="flex max-w-sm flex-col items-center">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-200">
-                <BookOpen className="size-8" strokeWidth={1.7} />
-              </div>
-              <h2 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
-                暂无知识库条目
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                当前分类下还没有沉淀的排错经验。
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Lightbulb className="h-16 w-16 text-slate-300" strokeWidth={1.7} />
+            <h2 className="mt-5 text-lg font-medium text-slate-600">
+              知识库暂无内容
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              记录第一条排错经验
+            </p>
+            <button
+              type="button"
+              onClick={() => alert("功能开发中")}
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 bg-white px-4 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              新增条目
+            </button>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">

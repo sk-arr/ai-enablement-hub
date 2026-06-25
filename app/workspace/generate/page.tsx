@@ -406,6 +406,23 @@ function sleep(ms: number) {
   });
 }
 
+function typeText(
+  text: string,
+  callback: (t: string) => void,
+  onDone: () => void,
+) {
+  let i = 0;
+  const timer = window.setInterval(() => {
+    i++;
+    callback(text.slice(0, i));
+
+    if (i >= text.length) {
+      window.clearInterval(timer);
+      onDone();
+    }
+  }, 30);
+}
+
 async function generateMockPlan(
   scene: Scene,
   inputContent: string,
@@ -470,6 +487,8 @@ function GeneratePageContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
+  const [displayedPlan, setDisplayedPlan] = useState<GeneratedPlan | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const selectedScene = useMemo(() => {
@@ -485,6 +504,9 @@ function GeneratePageContent() {
 
     setError("");
     setLoading(true);
+    setIsTyping(false);
+    setPlan(null);
+    setDisplayedPlan(null);
 
     const inputContent = [
       `任务标题：${title}`,
@@ -496,13 +518,32 @@ function GeneratePageContent() {
       .join("\n");
 
     const result = await generateMockPlan(selectedScene, inputContent);
-    setPlan(result);
     setSaveStatus("idle");
     setLoading(false);
+    setIsTyping(true);
+    setDisplayedPlan({ ...result, summary: "" });
+
+    typeText(
+      result.summary,
+      (summary) => {
+        setDisplayedPlan((current) => {
+          if (!current) {
+            return current;
+          }
+
+          return { ...current, summary };
+        });
+      },
+      () => {
+        setDisplayedPlan(result);
+        setPlan(result);
+        setIsTyping(false);
+      },
+    );
   };
 
   async function handleSave() {
-    if (!plan || saveStatus !== "idle") {
+    if (!plan || isTyping || saveStatus !== "idle") {
       return;
     }
 
@@ -622,7 +663,7 @@ function GeneratePageContent() {
 
           <button
             type="button"
-            disabled={loading}
+            disabled={loading || isTyping}
             onClick={handleGenerate}
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-blue-400"
           >
@@ -631,6 +672,8 @@ function GeneratePageContent() {
                 <Loader2 className="size-4 animate-spin" strokeWidth={2} />
                 生成中...
               </>
+            ) : isTyping ? (
+              "生成结果中..."
             ) : (
               "生成执行方案"
             )}
@@ -639,7 +682,7 @@ function GeneratePageContent() {
       </section>
 
       <section className="min-h-[640px]">
-        {!plan ? (
+        {!displayedPlan ? (
           <div className="flex min-h-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-100/70 p-8 text-center">
             <div className="flex max-w-sm flex-col items-center">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-white text-slate-400 shadow-sm ring-1 ring-slate-200">
@@ -658,7 +701,7 @@ function GeneratePageContent() {
             <div className="flex items-center justify-end">
               <button
                 type="button"
-                disabled={saveStatus !== "idle"}
+                disabled={!plan || isTyping || saveStatus !== "idle"}
                 onClick={handleSave}
                 className={`inline-flex h-11 items-center justify-center rounded-lg px-5 text-sm font-medium text-white shadow-sm transition-colors focus:outline-none focus:ring-4 disabled:cursor-not-allowed ${saveButtonClassName}`}
               >
@@ -672,16 +715,21 @@ function GeneratePageContent() {
               titleClassName="text-emerald-700"
               icon={Sparkles}
             >
-              <p>{plan.summary}</p>
+              <p>
+                {displayedPlan.summary}
+                {isTyping ? <span className="animate-pulse">|</span> : null}
+              </p>
             </PlanCard>
 
+            {!isTyping ? (
+              <>
             <PlanCard
               title="目标拆解"
               accentClassName="bg-blue-50 text-blue-600"
               icon={Target}
             >
               <ul className="space-y-2">
-                {plan.goals.map((goal) => (
+                {displayedPlan.goals.map((goal) => (
                   <li key={goal} className="flex gap-2">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-500" />
                     <span>{goal}</span>
@@ -696,7 +744,7 @@ function GeneratePageContent() {
               icon={Wrench}
             >
               <div className="space-y-3">
-                {plan.recommendedTools.map((tool) => (
+                {displayedPlan.recommendedTools.map((tool) => (
                   <div
                     key={tool.name}
                     className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
@@ -714,7 +762,7 @@ function GeneratePageContent() {
               icon={ListChecks}
             >
               <div className="space-y-4">
-                {plan.steps.map((step) => (
+                {displayedPlan.steps.map((step) => (
                   <div key={step.number} className="flex gap-3">
                     <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">
                       {step.number}
@@ -736,7 +784,7 @@ function GeneratePageContent() {
               icon={FileText}
             >
               <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-sm leading-6 text-slate-100">
-                {plan.promptTemplate}
+                {displayedPlan.promptTemplate}
               </pre>
             </PlanCard>
 
@@ -746,7 +794,7 @@ function GeneratePageContent() {
               icon={AlertTriangle}
             >
               <ul className="space-y-2">
-                {plan.risks.map((risk) => (
+                {displayedPlan.risks.map((risk) => (
                   <li key={risk} className="flex gap-2">
                     <span className="mt-2 size-1.5 shrink-0 rounded-full bg-red-400" />
                     <span>{risk}</span>
@@ -761,7 +809,7 @@ function GeneratePageContent() {
               icon={ClipboardCheck}
             >
               <ul className="space-y-2">
-                {plan.acceptanceCriteria.map((criterion) => (
+                {displayedPlan.acceptanceCriteria.map((criterion) => (
                   <li key={criterion} className="flex gap-2">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-green-500" />
                     <span>{criterion}</span>
@@ -776,7 +824,7 @@ function GeneratePageContent() {
               icon={Lightbulb}
             >
               <ul className="space-y-2">
-                {plan.optimizationSuggestions.map((suggestion) => (
+                {displayedPlan.optimizationSuggestions.map((suggestion) => (
                   <li key={suggestion} className="flex gap-2">
                     <span className="mt-2 size-1.5 shrink-0 rounded-full bg-pink-400" />
                     <span>{suggestion}</span>
@@ -784,6 +832,8 @@ function GeneratePageContent() {
                 ))}
               </ul>
             </PlanCard>
+              </>
+            ) : null}
           </div>
         )}
       </section>

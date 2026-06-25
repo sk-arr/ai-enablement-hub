@@ -58,10 +58,10 @@ export default function WorkspacePage() {
               key={scene.id}
               type="button"
               onClick={() => router.push(`/workspace/generate?scene=${scene.id}`)}
-              className="group flex min-h-64 flex-col rounded-xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-blue-100"
+              className="group flex min-h-64 cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-blue-100"
             >
               <div
-                className={`flex size-12 items-center justify-center rounded-xl ${sceneColorMap[scene.color]}`}
+                className={`flex size-12 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110 ${sceneColorMap[scene.color]}`}
               >
                 <Icon className="size-6" strokeWidth={1.9} />
               </div>
@@ -75,10 +75,10 @@ export default function WorkspacePage() {
                 </p>
               </div>
 
-              <div className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600">
+              <div className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600 transition-transform duration-200 group-hover:translate-x-1">
                 <span>开始使用</span>
                 <ArrowRight
-                  className="size-4 transition-transform group-hover:translate-x-0.5"
+                  className="size-4"
                   strokeWidth={1.9}
                 />
               </div>
