@@ -412,6 +412,7 @@ function typeText(
   onDone: () => void,
 ) {
   let i = 0;
+  const intervalMs = Math.max(4, Math.floor(1800 / Math.max(text.length, 1)));
   const timer = window.setInterval(() => {
     i++;
     callback(text.slice(0, i));
@@ -420,7 +421,7 @@ function typeText(
       window.clearInterval(timer);
       onDone();
     }
-  }, 30);
+  }, intervalMs);
 }
 
 async function generateMockPlan(
